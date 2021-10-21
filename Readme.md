@@ -1,1 +1,5 @@
-Altere a propriedade 'connectionstring_bus' presente arquivo 'appsettings.json', para a sua conexão com o azure service bus
+
+Altere o arquivo 'appsettings.json', ajustando as seguintes informações:
+- "AzureServiceBus": "AzureServiceBus_ConnectionString"
+- "QueueName": "nome da sua queue"
+- "TopicName": "nome do seu tópico"

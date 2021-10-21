@@ -21,7 +21,10 @@ namespace Fundamentos.Azure.ServiceBus.HostedServices
         {
             _config = config;
             var serviceBusConnection = _config.GetValue<string>("AzureServiceBus");
-            queueClient = new QueueClient(serviceBusConnection, "notificar");
+            var queueName = config.GetValue<string>("QueueName");
+            var topicName = config.GetValue<string>("TopicName");
+
+            queueClient = new QueueClient(serviceBusConnection, queueName);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)

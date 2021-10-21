@@ -13,11 +13,14 @@ namespace Fundamentos.Azure.ServiceBus.Controllers
     {
         private readonly IConfiguration config;
         private readonly string connectionString;
-
+        private readonly string queueName;
+        private readonly string topicName;
         public ProductsController(IConfiguration config)
         {
             this.config = config;
             connectionString = this.config.GetValue<string>("AzureServiceBus");
+            queueName = this.config.GetValue<string>("QueueName");
+            topicName = this.config.GetValue<string>("TopicName");
         }
 
         [HttpPost("queue")]
@@ -29,7 +32,6 @@ namespace Fundamentos.Azure.ServiceBus.Controllers
 
         private async Task SendMessageQueue(Product product)
         {
-            string queueName = "notificar";
             var client = new QueueClient(connectionString, queueName, ReceiveMode.PeekLock);
             string messageBody = JsonSerializer.Serialize(product);
             var message = new Message(Encoding.UTF8.GetBytes(messageBody));
@@ -47,8 +49,6 @@ namespace Fundamentos.Azure.ServiceBus.Controllers
 
         private async Task SendMessageToTopic(Product product)
         {
-            var topicName = "stores";
-
             var client = new TopicClient(connectionString, topicName);
             string messageBody = JsonSerializer.Serialize(product);
             var message = new Message(Encoding.UTF8.GetBytes(messageBody));
