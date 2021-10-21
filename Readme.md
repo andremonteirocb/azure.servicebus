@@ -1,5 +1,3 @@
+Altere a propriedade 'connectionstring_bus' presente arquivo 'appsettings.json', para a sua conexão com o azure service bus
 
-Azure Service Bus
-
-#   a n d r e m o n t e i r o c b - f u n d a m e n t o s . a z u r e . s e r v i c e b u s  
- 
+# andremonteirocb-fundamentos.azure.servicebus
