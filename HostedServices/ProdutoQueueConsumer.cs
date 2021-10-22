@@ -10,54 +10,56 @@ using System.Threading.Tasks;
 
 namespace Fundamentos.Azure.ServiceBus.HostedServices
 {
-    public class ProductTopicConsumer1 : IHostedService
+    public class ProdutoQueueConsumer : IHostedService
     {
-        static SubscriptionClient subscriptionClient;
+        static IQueueClient queueClient;
         private readonly IConfiguration _config;
 
-        public ProductTopicConsumer1(IConfiguration config)
+        public ProdutoQueueConsumer(IConfiguration config)
         {
             _config = config;
             var serviceBusConnection = _config.GetValue<string>("AzureServiceBus");
-            subscriptionClient = new SubscriptionClient(serviceBusConnection, "stores", "stores-sub1");
+            var queueName = config.GetValue<string>("QueueName");
+            var topicName = config.GetValue<string>("TopicName");
+
+            queueClient = new QueueClient(serviceBusConnection, queueName);
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("############## Starting Consumer - Topic Product Sub 1 ####################");
+            Console.WriteLine("############## Starting Consumer - Queue ####################");
             ProcessMessageHandler();
-            await Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("############## Stopping Consumer - Topic Product Sub 1 ####################");
-            await subscriptionClient.CloseAsync();
+            Console.WriteLine("############## Stopping Consumer - Queue ####################");
+            await queueClient.CloseAsync();
             await Task.CompletedTask;
         }
 
-        public void ProcessMessageHandler()
+        private void ProcessMessageHandler()
         {
             var messageHandlerOptions = new MessageHandlerOptions(ExceptionReceivedHandler)
             {
                 MaxConcurrentCalls = 1,
                 AutoComplete = false
             };
-
-            subscriptionClient.RegisterMessageHandler(ProcessMessagesAsync, messageHandlerOptions);
+            queueClient.RegisterMessageHandler(ProcessMessagesAsync, messageHandlerOptions);
         }
 
-        public async Task ProcessMessagesAsync(Message message, CancellationToken token)
+        private async Task ProcessMessagesAsync(Message message, CancellationToken token)
         {
-            Console.WriteLine("### Processing Message - Topic Product Sub 1 ###");
+            Console.WriteLine("### Processing Message - Queue ###");
             Console.WriteLine($"{DateTime.Now}");
             Console.WriteLine($"Received message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
-            Product _product = JsonSerializer.Deserialize<Product>(message.Body);
+            var _product = JsonSerializer.Deserialize<Produto>("");
 
-            await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
+            await queueClient.CompleteAsync(message.SystemProperties.LockToken);
         }
 
-        public Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
+        private Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
         {
             Console.WriteLine($"Message handler encountered an exception {exceptionReceivedEventArgs.Exception}.");
             var context = exceptionReceivedEventArgs.ExceptionReceivedContext;
@@ -65,6 +67,7 @@ namespace Fundamentos.Azure.ServiceBus.HostedServices
             Console.WriteLine($"- Endpoint: {context.Endpoint}");
             Console.WriteLine($"- Entity Path: {context.EntityPath}");
             Console.WriteLine($"- Executing Action: {context.Action}");
+
             return Task.CompletedTask;
         }
     }

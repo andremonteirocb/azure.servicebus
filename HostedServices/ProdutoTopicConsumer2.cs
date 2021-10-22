@@ -3,8 +3,6 @@ using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -12,56 +10,54 @@ using System.Threading.Tasks;
 
 namespace Fundamentos.Azure.ServiceBus.HostedServices
 {
-    public class ProductQueueConsumer : IHostedService
+    public class ProdutoTopicConsumer2 : IHostedService
     {
-        static IQueueClient queueClient;
+        static SubscriptionClient subscriptionClient;
         private readonly IConfiguration _config;
 
-        public ProductQueueConsumer(IConfiguration config)
+        public ProdutoTopicConsumer2(IConfiguration config)
         {
             _config = config;
             var serviceBusConnection = _config.GetValue<string>("AzureServiceBus");
-            var queueName = config.GetValue<string>("QueueName");
-            var topicName = config.GetValue<string>("TopicName");
-
-            queueClient = new QueueClient(serviceBusConnection, queueName);
+            subscriptionClient = new SubscriptionClient(serviceBusConnection, "stores", "stores-sub2");
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("############## Starting Consumer - Queue ####################");
+            Console.WriteLine("############## Starting Consumer - Topic Product Sub 1 ####################");
             ProcessMessageHandler();
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("############## Stopping Consumer - Queue ####################");
-            await queueClient.CloseAsync();
+            Console.WriteLine("############## Stopping Consumer - Topic Product Sub 1 ####################");
+            await subscriptionClient.CloseAsync();
             await Task.CompletedTask;
         }
 
-        private void ProcessMessageHandler()
+        public void ProcessMessageHandler()
         {
             var messageHandlerOptions = new MessageHandlerOptions(ExceptionReceivedHandler)
             {
                 MaxConcurrentCalls = 1,
                 AutoComplete = false
             };
-            queueClient.RegisterMessageHandler(ProcessMessagesAsync, messageHandlerOptions);
+
+            subscriptionClient.RegisterMessageHandler(ProcessMessagesAsync, messageHandlerOptions);
         }
 
-        private async Task ProcessMessagesAsync(Message message, CancellationToken token)
+        public async Task ProcessMessagesAsync(Message message, CancellationToken token)
         {
-            Console.WriteLine("### Processing Message - Queue ###");
+            Console.WriteLine("### Processing Message - Topic Product Sub 1 ###");
             Console.WriteLine($"{DateTime.Now}");
             Console.WriteLine($"Received message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
-            Product _product = JsonSerializer.Deserialize<Product>("");
+            var _product = JsonSerializer.Deserialize<Produto>(message.Body);
 
-            await queueClient.CompleteAsync(message.SystemProperties.LockToken);
+            await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
         }
 
-        private Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
+        public Task ExceptionReceivedHandler(ExceptionReceivedEventArgs exceptionReceivedEventArgs)
         {
             Console.WriteLine($"Message handler encountered an exception {exceptionReceivedEventArgs.Exception}.");
             var context = exceptionReceivedEventArgs.ExceptionReceivedContext;
@@ -69,7 +65,6 @@ namespace Fundamentos.Azure.ServiceBus.HostedServices
             Console.WriteLine($"- Endpoint: {context.Endpoint}");
             Console.WriteLine($"- Entity Path: {context.EntityPath}");
             Console.WriteLine($"- Executing Action: {context.Action}");
-
             return Task.CompletedTask;
         }
     }

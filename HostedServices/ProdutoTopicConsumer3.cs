@@ -1,5 +1,4 @@
 ﻿using Fundamentos.Azure.ServiceBus.Models;
-using Fundamentos.Azure.ServiceBus.Viewmodels;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -11,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace Fundamentos.Azure.ServiceBus.HostedServices
 {
-    public class ProductTopicConsumer3 : IHostedService
+    public class ProdutoTopicConsumer3 : IHostedService
     {
         static SubscriptionClient subscriptionClient;
         private readonly IConfiguration _config;
 
-        public ProductTopicConsumer3(IConfiguration config)
+        public ProdutoTopicConsumer3(IConfiguration config)
         {
             _config = config;
             var serviceBusConnection = _config.GetValue<string>("AzureServiceBus");
@@ -53,7 +52,8 @@ namespace Fundamentos.Azure.ServiceBus.HostedServices
             Console.WriteLine("### Processing Message - Topic Product Sub 1 ###");
             Console.WriteLine($"{DateTime.Now}");
             Console.WriteLine($"Received message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
-            ProductViewModel _product = JsonSerializer.Deserialize<ProductViewModel>(message.Body);
+            var _product = JsonSerializer.Deserialize<Produto>(message.Body);
+
             await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
         }
 

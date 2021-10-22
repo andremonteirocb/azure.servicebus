@@ -10,16 +10,16 @@ using System.Threading.Tasks;
 
 namespace Fundamentos.Azure.ServiceBus.HostedServices
 {
-    public class ProductTopicConsumer2 : IHostedService
+    public class ProdutoTopicConsumer1 : IHostedService
     {
         static SubscriptionClient subscriptionClient;
         private readonly IConfiguration _config;
 
-        public ProductTopicConsumer2(IConfiguration config)
+        public ProdutoTopicConsumer1(IConfiguration config)
         {
             _config = config;
             var serviceBusConnection = _config.GetValue<string>("AzureServiceBus");
-            subscriptionClient = new SubscriptionClient(serviceBusConnection, "stores", "stores-sub2");
+            subscriptionClient = new SubscriptionClient(serviceBusConnection, "stores", "stores-sub1");
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -52,7 +52,8 @@ namespace Fundamentos.Azure.ServiceBus.HostedServices
             Console.WriteLine("### Processing Message - Topic Product Sub 1 ###");
             Console.WriteLine($"{DateTime.Now}");
             Console.WriteLine($"Received message: SequenceNumber:{message.SystemProperties.SequenceNumber} Body:{Encoding.UTF8.GetString(message.Body)}");
-            Product _product = JsonSerializer.Deserialize<Product>(message.Body);
+            var _product = JsonSerializer.Deserialize<Produto>(message.Body);
+
             await subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
         }
 

@@ -2,7 +2,7 @@
 
 namespace Fundamentos.Azure.ServiceBus.Models
 {
-    public class Product
+    public class Produto
     {
         public Guid Id { get; set; }
         public string Name { get; set; }

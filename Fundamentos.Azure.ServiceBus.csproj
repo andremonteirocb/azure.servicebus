@@ -5,6 +5,7 @@
     <RootNamespace>Fundamentos.Azure.ServiceBus</RootNamespace>
     <StartupObject></StartupObject>
     <AssemblyName>Fundamentos.Azure.ServiceBus</AssemblyName>
+    <UserSecretsId>847a645f-ee2b-4edc-bcb6-f71a80eab3af</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
