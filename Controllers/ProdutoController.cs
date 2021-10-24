@@ -1,10 +1,7 @@
 ﻿using Fundamentos.Azure.ServiceBus.Models;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.Configuration;
-using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -14,39 +11,14 @@ namespace Fundamentos.Azure.ServiceBus.Controllers
     [Route("api/[controller]"), ApiController]
     public class ProdutosController : ControllerBase
     {
-        private readonly string root;
         private readonly string connectionString;
-        private readonly string queueMailName;
         private readonly string queueName;
         private readonly string topicName;
-        public ProdutosController(IConfiguration config, IWebHostEnvironment env)
+        public ProdutosController(IConfiguration config)
         {
-            root = env.ContentRootPath;
             connectionString = config.GetValue<string>("AzureServiceBus");
-            queueMailName = config.GetValue<string>("QueueMailName");
             queueName = config.GetValue<string>("QueueName");
             topicName = config.GetValue<string>("TopicName");
-        }
-
-        [HttpPost("emails")]
-        public async Task<IActionResult> PostEmail(MailMessage mail)
-        {
-            var client = new QueueClient(connectionString, queueMailName);
-
-            if (mail.BodyWithFile)
-            {
-                var path = $"{root}\\mail.html";
-                using (StreamReader reader = new StreamReader(path))
-                    mail.Body = reader.ReadToEnd();
-            }
-
-            var messageBody = JsonSerializer.Serialize(mail);
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody));
-
-            await client.SendAsync(message);
-            await client.CloseAsync();
-
-            return Ok(mail);
         }
 
         [HttpPost("queue")]
@@ -60,16 +32,6 @@ namespace Fundamentos.Azure.ServiceBus.Controllers
             await client.CloseAsync();
 
             return Ok(product);
-        }
-
-        private async Task SendMessageQueue(Produto product)
-        {
-            var client = new QueueClient(connectionString, queueName, ReceiveMode.PeekLock);
-            var messageBody = JsonSerializer.Serialize(product);
-            var message = new Message(Encoding.UTF8.GetBytes(messageBody));
-
-            await client.SendAsync(message);
-            await client.CloseAsync();
         }
 
         [HttpPost("topic")]
